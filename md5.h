@@ -1,6 +1,12 @@
-/*
- * Create an MD5 hex digest from a string.
- * 33-byte string is malloc'd by this function. The caller must free it.
- * When compiling, link to:  -l crypto
- */
-char *md5(const char *str, int length);
+#ifndef MD5_H
+#define MD5_H
+
+// Hash the input string using MD5
+// Places the result in output as a hex string
+void md5String(const char *input, char *output);
+
+// Hash the input string using MD5
+// Places the result in output as raw bytes
+void md5Bytes(const char *input, unsigned char *output);
+
+#endif

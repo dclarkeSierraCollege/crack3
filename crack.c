@@ -1,48 +1,61 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "md5.h"
-
-#if __has_include("fileutil.h")
 #include "fileutil.h"
-#endif
 
-#define PASS_LEN 50     // Maximum length any password will be.
-#define HASH_LEN 33     // Length of hash plus one for null.
+#define PASS_LEN 50
+#define HASH_LEN 33
 
 
-int main(int argc, char *argv[])
-{
-    if (argc < 3) 
-    {
+int main(int argc, char *argv[]) {
+    if (argc < 3) {
         printf("Usage: %s hash_file dictionary_file\n", argv[0]);
         exit(1);
     }
 
-    // TODO: Read the hashes file into an array.
-    //   Use either a 2D array or an array of arrays.
-    //   Use the loadFile function from fileutil.c
-    //   Uncomment the appropriate statement.
+    // Load hashes into memory using array of arrays
     int size;
-    //char (*hashes)[HASH_LEN] = loadFile(argv[1], &size);
-    //char **hashes = loadFile(argv[1], &size);
-    
-    // CHALLENGE1: Sort the hashes using qsort.
-    
-    // TODO
-    // Open the password file for reading.
+    char **hashes = loadFileAA(argv[1], &size);
+    if (!hashes) {
+        printf("Error loading hash file\n");
+        exit(1);
+    }
 
-    // TODO
-    // For each password, hash it, then use the array search
-    // function from fileutil.h to find the hash.
-    // If you find it, display the password and the hash.
-    // Keep track of how many hashes were found.
-    // CHALLENGE1: Use binary search instead of linear search.
+    // Open dictionary file
+    FILE *dict = fopen(argv[2], "r");
+    if (!dict) {
+        printf("Error opening dictionary file\n");
+        freeAA(hashes, size);
+        exit(1);
+    }
 
-    // TODO
-    // When done with the file:
-    //   Close the file
-    //   Display the number of hashes found.
-    //   Free up memory.
+    // Process each password
+    char password[PASS_LEN];
+    char hash[HASH_LEN];
+    int found = 0;
+    
+    while (fgets(password, PASS_LEN, dict)) {
+        // Remove newline if present
+        password[strcspn(password, "\n")] = 0;
+        
+        // Generate MD5 hash
+        md5String(password, hash);
+        
+        // Search for hash in array
+        int index = linearSearchAA(hash, hashes, size);
+        if (index >= 0) {
+            printf("Found: %s -> %s\n", password, hash);
+            found++;
+        }
+    }
+
+    // Clean up
+    fclose(dict);
+    printf("Cracked %d of %d hashes\n", found, size);
+    
+    // Free memory using the provided function
+    freeAA(hashes, size);
+
+    return 0;
 }
